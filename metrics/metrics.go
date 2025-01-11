@@ -27,6 +27,7 @@ type NewMetrics struct {
 	Open     []string
 	Closed   []string
 	Expected []string
+	Labels   map[string]string
 }
 
 // PingInfo holds the ping update of a specific target
@@ -35,6 +36,7 @@ type PingInfo struct {
 	IP           string
 	IsResponding bool
 	RTT          time.Duration
+	Labels       map[string]string
 }
 
 // Init initialize the metrics
@@ -62,26 +64,26 @@ func Init(addr string) *Server {
 		UnexpectedPorts: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "scanexporter_unexpected_open_ports_total",
 			Help: "Number of ports that are open, and shouldn't be.",
-		}, []string{"name", "ip"}),
+		}, []string{"name", "ip", "owner"}),
 		OpenPorts: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "scanexporter_open_ports_total",
 			Help: "Number of ports that are open.",
-		}, []string{"name", "ip"}),
+		}, []string{"name", "ip", "owner"}),
 
 		ClosedPorts: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "scanexporter_unexpected_closed_ports_total",
 			Help: "Number of ports that are closed and shouldn't be.",
-		}, []string{"name", "ip"}),
+		}, []string{"name", "ip", "owner"}),
 
 		DiffPorts: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "scanexporter_diff_ports_total",
 			Help: "Number of ports that are different from previous scan.",
-		}, []string{"name", "ip"}),
+		}, []string{"name", "ip", "owner"}),
 
 		Rtt: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "scanexporter_rtt_total",
 			Help: "Response time of the target.",
-		}, []string{"name", "ip"}),
+		}, []string{"name", "ip", "owner"}),
 	}
 
 	prometheus.MustRegister(
@@ -126,10 +128,15 @@ func (s *Server) Updater(metChan chan NewMetrics, pingChan chan PingInfo, pendin
 		case nm := <-metChan:
 			// New metrics set has been receievd
 
-			s.DiffPorts.WithLabelValues(nm.Name, nm.IP).Set(float64(nm.Diff))
+			labels := make(map[string]string)
+			labels["name"] = nm.Name
+			labels["ip"] = nm.IP
+			labels["owner"] = nm.Labels["owner"]
+
+			s.DiffPorts.With(labels).Set(float64(nm.Diff))
 			log.Info().Str("name", nm.Name).Str("ip", nm.IP).Msgf("%s (%s) open ports: %s", nm.Name, nm.IP, nm.Open)
 
-			s.OpenPorts.WithLabelValues(nm.Name, nm.IP).Set(float64(len(nm.Open)))
+			s.OpenPorts.With(labels).Set(float64(len(nm.Open)))
 
 			// If the port is open but not expected
 			for _, port := range nm.Open {
@@ -137,7 +144,7 @@ func (s *Server) Updater(metChan chan NewMetrics, pingChan chan PingInfo, pendin
 					unexpectedPorts = append(unexpectedPorts, port)
 				}
 			}
-			s.UnexpectedPorts.WithLabelValues(nm.Name, nm.IP).Set(float64(len(unexpectedPorts)))
+			s.UnexpectedPorts.With(labels).Set(float64(len(unexpectedPorts)))
 			if len(unexpectedPorts) > 0 {
 				log.Warn().Str("name", nm.Name).Str("ip", nm.IP).Msgf("%s (%s) unexpected open ports: %s", nm.Name, nm.IP, unexpectedPorts)
 			} else {
@@ -152,7 +159,7 @@ func (s *Server) Updater(metChan chan NewMetrics, pingChan chan PingInfo, pendin
 					closedPorts = append(closedPorts, port)
 				}
 			}
-			s.ClosedPorts.WithLabelValues(nm.Name, nm.IP).Set(float64(len(closedPorts)))
+			s.ClosedPorts.With(labels).Set(float64(len(closedPorts)))
 			if len(closedPorts) > 0 {
 				log.Warn().Str("name", nm.Name).Str("ip", nm.IP).Msgf("%s (%s) unexpected closed ports: %s", nm.Name, nm.IP, closedPorts)
 			} else {
@@ -171,7 +178,7 @@ func (s *Server) Updater(metChan chan NewMetrics, pingChan chan PingInfo, pendin
 			}
 
 			// Update target's RTT metric
-			s.Rtt.WithLabelValues(pm.Name, pm.IP).Set(float64(pm.RTT))
+			s.Rtt.WithLabelValues(pm.Name, pm.IP, pm.Labels["owner"]).Set(float64(pm.RTT))
 
 			// Check if the IP is already in the map.
 			_, ok := s.NotRespondingList[pm.IP]

@@ -33,6 +33,7 @@ func (t *target) ping(logger zerolog.Logger, timeout time.Duration, pchan chan m
 				IP:           t.ip,
 				IsResponding: false,
 				RTT:          0,
+				Labels:       t.labels,
 			}
 
 			pinger, err := ping.NewPinger(t.ip)

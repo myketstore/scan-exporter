@@ -29,6 +29,7 @@ type target struct {
 	tcpPeriod  string
 	icmpPeriod string
 	qps        int
+	labels     map[string]string
 }
 
 // Scanner holds the targets list, global settings such as timeout and lock size,
@@ -75,6 +76,7 @@ func (s *Scanner) Start(c *config.Conf) error {
 			icmpPeriod: t.ICMP.Period,
 			ports:      t.TCP.Range,
 			qps:        t.QueriesPerSecond,
+			labels:     t.Labels,
 		}
 
 		// Set to global values if specific values are not set
@@ -321,6 +323,7 @@ func receiver(scanIsOver chan target, singleResult chan string, pchan chan metri
 				Open:     openPorts[t.ip],
 				Closed:   closedPorts[t.ip],
 				Expected: t.expected,
+				Labels:   t.labels,
 			}
 
 			// Send new metrics

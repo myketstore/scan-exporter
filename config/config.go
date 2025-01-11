@@ -9,12 +9,13 @@ import (
 
 // Target holds an IP and a range of ports to scan
 type Target struct {
-	IP               string   `yaml:"ip"`
-	Name             string   `yaml:"name"`
-	Range            string   `yaml:"range"`
-	QueriesPerSecond int      `yaml:"queries_per_sec"`
-	TCP              protocol `yaml:"tcp"`
-	ICMP             protocol `yaml:"icmp"`
+	IP               string            `yaml:"ip"`
+	Name             string            `yaml:"name"`
+	Range            string            `yaml:"range"`
+	QueriesPerSecond int               `yaml:"queries_per_sec"`
+	TCP              protocol          `yaml:"tcp"`
+	ICMP             protocol          `yaml:"icmp"`
+	Labels           map[string]string `yaml:"labels"`
 }
 
 type protocol struct {
