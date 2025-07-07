@@ -139,6 +139,11 @@ func (s *Server) Updater(metChan chan NewMetrics, pingChan chan PingInfo, pendin
 			s.OpenPorts.With(labels).Set(float64(len(nm.Open)))
 
 			// If the port is open but not expected
+
+			// Delete all previous metrics for this target
+			s.UnexpectedPorts.DeletePartialMatch(labels)
+
+			// Add only current unexpected open ports
 			for _, port := range nm.Open {
 				if !common.StringInSlice(port, nm.Expected) {
 					labels["port"] = port
