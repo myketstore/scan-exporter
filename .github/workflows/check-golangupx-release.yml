@@ -2,8 +2,8 @@ name: Check for new Golang upx releases
 
 on:
   schedule:
-    # Run every 24 hours
-    - cron: '0 0 * * *'
+    # Run every sunday
+    - cron: '0 0 * * 0'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -76,11 +76,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PUSH_WORKFLOW }}
 
       - name: Update Dockerfile
         run: |
