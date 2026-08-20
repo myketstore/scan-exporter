@@ -65,12 +65,6 @@ jobs:
           sed -i "s/go [0-9]\+\.[0-9]\+\.[0-9]\+/go ${NEW_VERSION}/" go.mod
           echo "Updated go.mod to Go version ${NEW_VERSION}"
 
-      - name: Update release_build workflow
-        run: |
-          NEW_VERSION="${{ needs.check-golang-version.outputs.version }}"
-          sed -i "s/go-version: '[0-9]\+\.[0-9]\+\.[0-9]'/go-version: '${NEW_VERSION}'/" .github/workflows/release_build.yml
-          echo "Updated release_build.yml Go version ${NEW_VERSION}"
-
       - name: Create Pull Request
         run: |
           set -x
@@ -80,7 +74,7 @@ jobs:
               git switch golangupx_${{ needs.check-golang-version.outputs.version }}
               git config --local user.email "github-actions[bot]@users.noreply.github.com"
               git config --local user.name "github-actions[bot]"
-              git add Dockerfile go.mod .github/workflows/release_build.yml
+              git add Dockerfile go.mod
               git commit -m "chore: update Golang upx to version ${{ needs.check-golang-version.outputs.version }}"
               git push -u origin golangupx_${{ needs.check-golang-version.outputs.version }}
               gh pr create --fill --repo ${{ github.repository }}
