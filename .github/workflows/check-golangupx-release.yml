@@ -48,11 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Update Dockerfile
         run: |
@@ -87,4 +86,4 @@ jobs:
               gh pr create --fill --repo ${{ github.repository }}
           fi
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
