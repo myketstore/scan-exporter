@@ -1,4 +1,4 @@
-FROM devopsworks/golang-upx:1.27.3 AS builder
+FROM devopsworks/golang-upx:1.27.4 AS builder
 
 RUN apt-get update && apt-get install -y libcap2-bin
 
