@@ -20,7 +20,7 @@ jobs:
         id: check
         run: |
           # Get the latest golang upx release
-          LATEST_VERSION=$(curl -fs https://api.github.com/repos/devops-works/docker-golang-upx/releases/latest | jq -r '.tag_name' | sed 's/v//')
+          LATEST_VERSION=$(curl -fsS --retry 3 https://api.github.com/repos/devops-works/docker-golang-upx/releases/latest | jq -r '.tag_name' | sed 's/^v//')
           if [ -z "$LATEST_VERSION" ]; then
             echo "Failure in retrieving Latest Golang upx release."
             exit 1
